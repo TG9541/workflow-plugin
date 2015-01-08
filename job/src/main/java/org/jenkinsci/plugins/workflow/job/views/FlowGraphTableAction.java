@@ -26,12 +26,20 @@ package org.jenkinsci.plugins.workflow.job.views;
 
 import hudson.Extension;
 import hudson.model.Action;
+import hudson.model.Api;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import jenkins.model.TransientActionFactory;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable;
+import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable.Row;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
+@ExportedBean
 public final class FlowGraphTableAction implements Action {
 
     public final WorkflowRun run;
@@ -40,6 +48,10 @@ public final class FlowGraphTableAction implements Action {
         this.run = run;
     }
 
+    public Api getApi() {
+        return new Api(this);
+    }
+    
     @Override public String getIconFileName() {
         return "gear.png";
     }
@@ -52,6 +64,38 @@ public final class FlowGraphTableAction implements Action {
         return "flowGraphTable";
     }
 
+    @Exported 
+    public String getStatus() {
+        if (run == null) {
+            return "run:null";
+        }
+        else {
+            FlowExecution execution;
+            execution = run.getExecution();
+            if (execution == null) {
+              return "run.getExecution:null";
+            }
+             else if (execution.isComplete()) {
+              return "complete";
+            }
+            else {
+              return "running";
+            }
+        }
+    }
+            
+    @Exported
+    public List<String> getFlowInfo() {
+        List<String> lFR;
+        lFR = new ArrayList <String>();
+        for (Row r : this.getFlowGraph().getRows()) {
+            lFR.add(r.getDisplayName());
+            
+        }
+        return lFR;
+                
+    }
+    
     public FlowGraphTable getFlowGraph() {
         FlowGraphTable t = new FlowGraphTable(run.getExecution());
         t.build();
